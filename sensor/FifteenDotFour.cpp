@@ -5,7 +5,6 @@
 #include <xdc/runtime/System.h>
 #include <software_stack/ti15_4stack/stack_user_api/api_mac/api_mac.h>
 #include "ti_154stack_config.h"
-//#include <buffer.h>
 
 #define DEFAULT_KEY_SOURCE {0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33}
 
@@ -67,7 +66,6 @@ FifteenDotFour::FifteenDotFour(void)
 
 uint8_t FifteenDotFour::available(void)
 {
-    /* Pass by reference private variable */
     return buffer_get_size(&rx_buffer);
 }
 
@@ -76,14 +74,19 @@ uint8_t FifteenDotFour::read(void)
     return buffer_read(&rx_buffer);
 }
 
-bool FifteenDotFour::read(uint8_t* user_buf, size_t size)
+uint8_t FifteenDotFour::read(uint8_t* user_buf, size_t size)
 {
     return buffer_read_multiple(user_buf, &rx_buffer, size);
 }
 
-bool FifteenDotFour::uint8_t write(uint8_t w_byte)
+bool FifteenDotFour::write(uint8_t w_byte)
 {
-  return buffer_write(&rx_buffer, w_byte)
+    return buffer_write(&rx_buffer, w_byte);
+}
+
+bool FifteenDotFour::write(uint8_t* user_buf, size_t size)
+{
+    return buffer_write_multiple(&tx_buffer, user_buf, size);
 }
 
 void FifteenDotFour::rx_flush(void)
@@ -103,7 +106,7 @@ void FifteenDotFour::begin(bool autoJoin)
 //    Task_enable();
 
     /* Create rx_buffer and tx_buffer */
-    if (!(buffer_init(rx_buffer, RX154_MAX_BUFF_SIZE) || buffer_init(tx_buffer, RX154_MAX_BUFF_SIZE)))
+    if (!(buffer_init(&rx_buffer, RX154_MAX_BUFF_SIZE)))
     {
         return; /* Failure to initialize buffer structs */
     }

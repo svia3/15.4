@@ -5,12 +5,12 @@
 #include <stdint.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
-#include <utils/util_timer.h>
+#include "utils/util_timer.h"
 #include <application/sensor/smsgs.h>
 //#include <uart_impl.h>
 #include <xdc/runtime/System.h>
 #include <string.h>
-#include <buffer.h>
+#include <application/buffer_c/buffer.h>
 
 /*
  * TODO: Some of these come from jdllc.c.
@@ -73,67 +73,64 @@ class FifteenDotFour
 		uint8_t getSignalStrength(void) { return signalStrength; };
 
 		/* ------------------------------------------------- */
-		/* Buffer Handling */
+		/*                  Buffer Handling                  */
 		/* ------------------------------------------------- */
 		/**
-		 * How many bytes are available in the RX Buffer? Calculated by subtracting
-		 * the (head - tail) pointers if the result is positive. If the write pointer
-		 * is before the read in the circular buffer, take the length of the first and
-		 * last chunk and add them together for total available bytes.
+		 * Call buffer_get_size() to calculate number of bytes in buffer.
 		 *
-		 * @return  [description]
+		 * @return              number of bytes available in the buffer
 		 */
 		uint8_t available(void);
 
 		/**
-		 * If there are bytes available in the read buffer, default extract one
-		 * byte and move read pointer over by one byte (one index).
+		 * Call buffer_read to read a single byte.
 		 *
-		 * @return  The read byte
+		 * @return              read byte
 		 */
 		uint8_t read(void);
 
 		/**
-		 * If there are bytes available in the read buffer, read the desired amount
-		 * (size) into the user passed buffer. Adjust the read pointer.
+		 * Call buffer_read_multiple() to read multiple bytes from rx_buffer
+		 * into user defined uint8_t array.
 		 *
-		 * @param  user_buf 	User buffer pass by pointer
-		 * @param  size 			Amount of bytes to be read from rx_buffer
-		 * @return      			Number of bytes read
+		 * @param  user_buf 	user buffer pass by pointer
+		 * @param  size 	    amount of bytes to be read from rx_buffer
+		 * @return      		number of bytes read
 		 */
 		uint8_t read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
 
 		/**
-		 * Write a single byte to the tx_buffer. The user does not have access to the
-		 * buffer as it is a 15.4 private variable.
+		 * Call buffer_write() to write a single byte to tx_buffer.
 		 *
-		 * @param  w_byte Written byte
-		 * @return true is successful, 0 if not
+		 * @param  w_byte       written byte
+		 * @return              true/false successful write
 		 */
 		bool write(uint8_t w_byte);
 
 		/**
-		 * Write a user defined char array to the tx_buffer. The user does not have
-		 * access to the buffer as it is a 15.4 private variable. The size to write
-		 * must be smaller than the amount of vacant bytes.
-		 * @param  user_buf  Char array to pull bytes from to fill tx_buffer
-		 * @param  size size of the bytes to push onto tx_buffer
-		 * @return      [description]
+		 * Call buffer_write_mutliple to write multiple bytes from a user
+		 * defined uint8_t array into the tx_buffer.
+		 *
+		 * @param  user_buf     uint8_t user array to push onto tx_buffer
+		 * @param  size         size of the bytes to push onto tx_buffer
+		 * @return              true/false successful write
 		 */
 		bool write(uint8_t* user_buf, size_t size);
 
 		/**
-		 * Flush, memset 0, the 15.4 class variable rx_buffer.
+		 * Flush the 15.4 class variable rx_buffer.
 		 */
 		void rx_flush(void);
 
 		/**
-		 * Flush, memset 0, the 15.4 class variable tx_buffer.
+		 * Flush the 15.4 class variable tx_buffer.
 		 */
 		void tx_flush(void);
-    /* ------------------------------------------------- */
+		/* ------------------------------------------------- */
 
-		/* static callback functions for the MAC */
+		/* ------------------------------------------------- */
+        /*     Static Callback Functions for the MAC         */
+        /* ------------------------------------------------- */
 		static void dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf);
 		static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd);
 		static void scanCnfCB(ApiMac_mlmeScanCnf_t *pScanCnf);
@@ -141,6 +138,7 @@ class FifteenDotFour
 		static void associateCnfCB(ApiMac_mlmeAssociateCnf_t *pAssocCnf);
 		static void pollCnfCb(ApiMac_mlmePollCnf_t *pData);
 		static void processPollTimeoutCallback(UArg instance);
+		/* ------------------------------------------------- */
 
 	private:
 		/*
@@ -149,7 +147,7 @@ class FifteenDotFour
 		void initializePollClock(void);
 		void setPollClock(uint32_t pollTime);
         bool checkBeaconOrder(uint16_t superframeSpec);
-//        void UART_initialization(Uarg arg0, Uarg arg1);
+
         /*
          * Bookkeeping variables
          */
