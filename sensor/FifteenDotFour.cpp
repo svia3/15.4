@@ -76,9 +76,14 @@ uint8_t FifteenDotFour::read(void)
     return buffer_read(&rx_buffer);
 }
 
-uint8_t FifteenDotFour::read(uint8_t* user_buf, size_t size)
+bool FifteenDotFour::read(uint8_t* user_buf, size_t size)
 {
     return buffer_read_multiple(user_buf, &rx_buffer, size);
+}
+
+bool FifteenDotFour::uint8_t write(uint8_t w_byte)
+{
+  return buffer_write(&rx_buffer, w_byte)
 }
 
 void FifteenDotFour::rx_flush(void)

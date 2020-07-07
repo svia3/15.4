@@ -76,27 +76,62 @@ class FifteenDotFour
 		/* Buffer Handling */
 		/* ------------------------------------------------- */
 		/**
-		 * @brief   How many bytes are available in the RX Buffer? Calculated by subtracting
-		 *          the (head - tail) pointers if the result is positive. If the write pointer
-		 *          is before the read in the circular buffer, take the length of the first and
-		 *          last chunk and add them together for total available bytes.
+		 * How many bytes are available in the RX Buffer? Calculated by subtracting
+		 * the (head - tail) pointers if the result is positive. If the write pointer
+		 * is before the read in the circular buffer, take the length of the first and
+		 * last chunk and add them together for total available bytes.
 		 *
-		 * @return  Length of bytes occupied in buffer
+		 * @return  [description]
 		 */
 		uint8_t available(void);
+
 		/**
-		 * @brief   If there are bytes available in the read buffer, default extract one
-		 *          byte and move read pointer over by one byte (one index).
+		 * If there are bytes available in the read buffer, default extract one
+		 * byte and move read pointer over by one byte (one index).
 		 *
-		 * @return  Current indexed byte in rx buffer
+		 * @return  The read byte
 		 */
-		uint8_t read(void);                             // pop one byte @ the read pointer
-		uint8_t read(uint8_t* buf, size_t size);    // pop a certain amount of bytes from queue
-		uint8_t write(void);
-		uint8_t write(uint8_t* buf, size_t size);
+		uint8_t read(void);
+
+		/**
+		 * If there are bytes available in the read buffer, read the desired amount
+		 * (size) into the user passed buffer. Adjust the read pointer.
+		 *
+		 * @param  user_buf 	User buffer pass by pointer
+		 * @param  size 			Amount of bytes to be read from rx_buffer
+		 * @return      			Number of bytes read
+		 */
+		uint8_t read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
+
+		/**
+		 * Write a single byte to the tx_buffer. The user does not have access to the
+		 * buffer as it is a 15.4 private variable.
+		 *
+		 * @param  w_byte Written byte
+		 * @return true is successful, 0 if not
+		 */
+		bool write(uint8_t w_byte);
+
+		/**
+		 * Write a user defined char array to the tx_buffer. The user does not have
+		 * access to the buffer as it is a 15.4 private variable. The size to write
+		 * must be smaller than the amount of vacant bytes.
+		 * @param  user_buf  Char array to pull bytes from to fill tx_buffer
+		 * @param  size size of the bytes to push onto tx_buffer
+		 * @return      [description]
+		 */
+		bool write(uint8_t* user_buf, size_t size);
+
+		/**
+		 * Flush, memset 0, the 15.4 class variable rx_buffer.
+		 */
 		void rx_flush(void);
+
+		/**
+		 * Flush, memset 0, the 15.4 class variable tx_buffer.
+		 */
 		void tx_flush(void);
-        /* ------------------------------------------------- */
+    /* ------------------------------------------------- */
 
 		/* static callback functions for the MAC */
 		static void dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf);
