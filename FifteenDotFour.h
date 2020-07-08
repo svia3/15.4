@@ -4,5 +4,6 @@ class FifteenDotFour
 //    private:
 
     public:
-        FifteenDotFour(void);
+        FifteenDotFour(void); // INTERFACE
+
 };

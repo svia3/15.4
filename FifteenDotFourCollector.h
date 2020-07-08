@@ -5,6 +5,7 @@
 #include <ti/sysbios/knl/Semaphore.h>
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
 #include <utils/buffer_c/buffer.h>
+#include <FifteenDotFour.h>
 
 #define MIN_PERSISTENCE_TIME_USEC 2000000
 #define INDIRECT_PERSISTENT_TIME (MAX((5 * 1000 * CONFIG_POLLING_INTERVAL / 2), MIN_PERSISTENCE_TIME_USEC)/ \

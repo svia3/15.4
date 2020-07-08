@@ -1,7 +1,6 @@
 #include <xdc/runtime/System.h>
 #include "ti_154stack_config.h"
 #include <advanced_config.h>
-#include <FifteenDotFour.h>
 #include <FifteenDotFourCollector.h>
 #include <software_stack/ti15_4stack/macTask.h>
 #include <software_stack/ti15_4stack/mac/rom/rom_jt_154.h>
@@ -171,7 +170,7 @@ void FifteenDotFourCollector::beginTransmission(uint16_t address)
     // set the address of the destination node
 //    setAddressExt(ApiMac_sAddrExt_t *addr)
     // clear buffer
-    tx_flush(&tx_buffer);
+//    tx_flush(&tx_buffer);
 }
 
 bool FifteenDotFourCollector::endTransmission()

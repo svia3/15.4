@@ -7,6 +7,7 @@
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
 #include <utils/util_timer.h>
 #include <utils/buffer_c/buffer.h>
+#include <FifteenDotFour.h>
 
 /*
  * TODO: Some of these come from jdllc.c.
