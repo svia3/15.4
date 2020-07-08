@@ -23,7 +23,7 @@
            (sizeof(Cllc_associated_devices_t) * CONFIG_MAX_DEVICES));
  *
  */
-class FifteenDotFourCollector
+class FifteenDotFourCollector : public FifteenDotFour
 {
     public:
         FifteenDotFourCollector(void);

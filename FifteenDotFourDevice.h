@@ -42,7 +42,7 @@
 
 #define AUTO_REQUEST_SEC_LEVEL 0x00
 
-class FifteenDotFourDevice
+class FifteenDotFourDevice : public FifteenDotFour
 {
 	public:
 		FifteenDotFourDevice(void);
