@@ -1,17 +1,19 @@
-#include "FifteenDotFour.h"
 #include <software_stack/ti15_4stack/macTask.h>
 #include <software_stack/ti15_4stack/mac/rom/rom_jt_154.h>
 #include <advanced_config.h>
+#include <FifteenDotFour.h>
+#include <FifteenDotFourDevice.h>
 #include <xdc/runtime/System.h>
 #include <software_stack/ti15_4stack/stack_user_api/api_mac/api_mac.h>
 #include "ti_154stack_config.h"
-//#include <buffer.h>
 
 #define DEFAULT_KEY_SOURCE {0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33}
 
-FifteenDotFour *_this;
+FifteenDotFourDevice *_this;
 extern "C" ApiMac_sAddrExt_t ApiMac_extAddr;
 static uint8_t defaultChannelMask[APIMAC_154G_CHANNEL_BITMAP_SIZ] = CONFIG_CHANNEL_MASK;
+
+extern "C" void assertHandler(void);
 
 extern "C" {
 static ApiMac_callbacks_t Sensor_macCallbacks =
@@ -19,31 +21,31 @@ static ApiMac_callbacks_t Sensor_macCallbacks =
       /*! Associate Indicated callback */
       NULL,
       /*! Associate Confirmation callback */
-      FifteenDotFour::associateCnfCB,
+      FifteenDotFourDevice::associateCnfCB,
       /*! Disassociate Indication callback */
       NULL,
       /*! Disassociate Confirmation callback */
       NULL,
       /*! Beacon Notify Indication callback */
-      FifteenDotFour::beaconNotifyIndCb,
+      FifteenDotFourDevice::beaconNotifyIndCb,
       /*! Orphan Indication callback */
       NULL,
       /*! Scan Confirmation callback */
-      FifteenDotFour::scanCnfCB,
+      FifteenDotFourDevice::scanCnfCB,
       /*! Start Confirmation callback */
       NULL,
       /*! Sync Loss Indication callback */
       NULL,
       /*! Poll Confirm callback */
-      FifteenDotFour::pollCnfCb,
+      FifteenDotFourDevice::pollCnfCb,
       /*! Comm Status Indication callback */
       NULL,
       /*! Poll Indication Callback */
       NULL,
       /*! Data Confirmation callback */
-      FifteenDotFour::dataCnfCB,
+      FifteenDotFourDevice::dataCnfCB,
       /*! Data Indication callback */
-      FifteenDotFour::dataIndCB,
+      FifteenDotFourDevice::dataIndCB,
       /*! Purge Confirm callback */
       NULL,
       /*! WiSUN Async Indication callback */
@@ -55,7 +57,7 @@ static ApiMac_callbacks_t Sensor_macCallbacks =
     };
 }
 
-FifteenDotFour::FifteenDotFour(void)
+FifteenDotFourDevice::FifteenDotFourDevice(void)
 {
     /*
      * Assign global class ptr to this instance.
@@ -65,46 +67,56 @@ FifteenDotFour::FifteenDotFour(void)
     _this = this;
 }
 
-uint8_t FifteenDotFour::available(void)
+uint8_t FifteenDotFourDevice::available(void)
 {
-    /* Pass by reference private variable */
     return buffer_get_size(&rx_buffer);
 }
 
-uint8_t FifteenDotFour::read(void)
+uint8_t FifteenDotFourDevice::read(void)
 {
     return buffer_read(&rx_buffer);
 }
 
-uint8_t FifteenDotFour::read(uint8_t* user_buf, size_t size)
+uint8_t FifteenDotFourDevice::read(uint8_t* user_buf, size_t size)
 {
     return buffer_read_multiple(user_buf, &rx_buffer, size);
 }
 
-void FifteenDotFour::rx_flush(void)
+bool FifteenDotFourDevice::write(uint8_t w_byte)
+{
+    return buffer_write(&tx_buffer, w_byte);
+}
+
+bool FifteenDotFourDevice::write(uint8_t* user_buf, size_t size)
+{
+    return buffer_write_multiple(&tx_buffer, user_buf, size);
+}
+
+void FifteenDotFourDevice::rx_flush(void)
 {
     buffer_flush(&rx_buffer);   /* flush the tx_buffer too? */
 }
 
-void FifteenDotFour::tx_flush(void)
+void FifteenDotFourDevice::tx_flush(void)
 {
     buffer_flush(&tx_buffer);   /* flush the tx_buffer too? */
 }
 
-void FifteenDotFour::begin(bool autoJoin)
+void FifteenDotFourDevice::begin(bool autoJoin)
 {
-//    Task_disable();
-//    _macTaskId = macTaskInit(macUser0Cfg);
-//    Task_enable();
+    uint8_t _macTaskId;
+    macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;
 
-    /* Create rx_buffer and tx_buffer */
-    if (!(buffer_init(rx_buffer, RX154_MAX_BUFF_SIZE) || buffer_init(tx_buffer, RX154_MAX_BUFF_SIZE)))
-    {
-        return; /* Failure to initialize buffer structs */
-    }
+    macUser0Cfg[0].pAssertFP = assertHandler;
+    macUser0Cfg[0].ff = false;
 
-    /* Polling Timeout Clock */
+    Task_disable();
+    _macTaskId = macTaskInit(macUser0Cfg);
+    Task_enable();
+
     initializePollClock();
+    initializeScanClock();
+
     if(autoJoin) {
         this->revents |= JOIN_EVENT;
     }
@@ -113,7 +125,7 @@ void FifteenDotFour::begin(bool autoJoin)
     memcpy(ApiMac_extAddr, (uint8_t *)(FCFG1_BASE + EXTADDR_OFFSET), (APIMAC_SADDR_EXT_LEN));
 
     /* Initialize MAC without frequency hopping */
-    sem = (Semaphore_Handle)ApiMac_init(macTaskId, false);
+    sem = (Semaphore_Handle)ApiMac_init(_macTaskId, false);
 
     ApiMac_registerCallbacks(&Sensor_macCallbacks);
 
@@ -139,12 +151,12 @@ void FifteenDotFour::begin(bool autoJoin)
                               (uint8_t)CONFIG_MAX_RETRIES);
 }
 
-void FifteenDotFour::connect(void)
+void FifteenDotFourDevice::connect(void)
 {
     revents |= JOIN_EVENT;
 }
 
-void FifteenDotFour::process(void)
+void FifteenDotFourDevice::process(void)
 {
     if(revents & JOIN_EVENT) {
         revents &= ~JOIN_EVENT;
@@ -193,21 +205,26 @@ void FifteenDotFour::process(void)
         assocReq.capabilityInformation.allocAddr = true;
         assocReq.capabilityInformation.ffd = false;
         assocReq.capabilityInformation.panCoord = false;
-        assocReq.capabilityInformation.rxOnWhenIdle = CONFIG_RX_ON_IDLE;
+        assocReq.capabilityInformation.rxOnWhenIdle = false;
         ApiMac_mlmeAssociateReq(&assocReq);
     }
 
     if(revents & IDLE_EVENT) {
         revents &= ~IDLE_EVENT;
         ApiMac_mlmeSetReqBool(ApiMac_attribute_RxOnWhenIdle, false);
-        /* Start polling timer to poll collector for data */
-        setPollClock(POLLING_INTERVAL);
+        if(connected()) {
+            /* Start polling timer to poll collector for data */
+            setPollClock(POLLING_INTERVAL);
+        } else {
+            setScanClock(SCAN_INTERVAL);
+        }
     }
 
     if(revents & POLL_EVENT) {
         revents &= ~POLL_EVENT;
         revents |= IDLE_EVENT;
         ApiMac_mlmePollReq_t pollReq;
+
         memset(&pollReq, 0, sizeof(ApiMac_mlmePollReq_t));
         pollReq.coordPanId = getPanID();
         pollReq.coordAddress.addrMode = ApiMac_addrType_short;
@@ -215,79 +232,23 @@ void FifteenDotFour::process(void)
         ApiMac_mlmePollReq(&pollReq);
     }
 
-    /*
-     * PollRequest was successful. Collector has data to send;
-     * data indication callback
-     */
-    if(revents & RECV_EVENT) {
-        // what to do here?
-        revents &= ~RECV_EVENT;
+    if(revents == 0) {
+        ApiMac_processIncoming();
     }
-
-    /*
-     * Sending Mesage Event
-     */
-//    if(revents & SEND_EVENT) {
-//        /* changing state */
-//        revents &= ~RECV_EVENT
-//        memset(&sensor, 0, sizeof(Smsgs_sensorMsg_t));
-//
-//        /* fill in the config settings -> move these else where
-//         * put in some sort of messageInit() method. TODO: extend this to sensor readings
-//         * (have to update bitmask for the configSettings like sensor.c)
-//         * */
-//        configSettings.frameControl |= Smsgs_dataFields_msgStats;
-//        configSettings.frameControl |= Smsgs_dataFields_configSettings;
-//
-//        /* copy to sensors internal structure */
-//        _this->sensor.frameControl = _this->configSettings.frameControl;
-//        if(sensor.frameControl & Smsgs_dataFields_msgStats)
-//        {
-//            memcpy(&sensor.msgStats, &Sensor_msgStats,
-//                   sizeof(Smsgs_msgStatsField_t));
-//        }
-//    }
-
-
-    ApiMac_processIncoming();
 }
 
-/*
- * @brief
- *
- * @params a pointer to the poll confirmation struct
- */
-void FifteenDotFour::pollCnfCb(ApiMac_mlmePollCnf_t *pData) {
-    if(pData->status == ApiMac_status_success)
+void FifteenDotFourDevice::pollCnfCb(ApiMac_mlmePollCnf_t *pData) {
+    if((pData->status == ApiMac_status_noData) ||
+       (pData->status == ApiMac_status_success))
     {
-        _this->revents = RECV_EVENT;
-    }
-    else if(pData->status == ApiMac_status_noAck)
-    {
-        _this->revents = IDLE_EVENT;
+
     }
 }
 /*
- * MAC API C callbacks - sending data (did it send correctly?
- *
+ * MAC API C callbacks.
  */
-void FifteenDotFour::dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf)
+void FifteenDotFourDevice::dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf)
 {
-    // data sending state ->
-//    if (CONFIC_MAC_BEACON_ORDER == JDLLC_BEACON_ORDER_NON_BEACON)
-//    {
-        if(pDataCnf->status == ApiMac_status_noAck)
-        {
-            //_this->updateDataFailures()
-            // how to handle max data failures or not -> switch to a polling state
-            _this->revents = POLL_EVENT;
-        }
-        else if (pDataCnf->status == ApiMac_status_success)
-        {
-            //-this->resetDataFailures
-            _this->revents = IDLE_EVENT;
-        }
-//    }
 }
 
 /*!
@@ -296,31 +257,13 @@ void FifteenDotFour::dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf)
  * @param      pDataInd - pointer to the data indication information
  */
 
-void FifteenDotFour::dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
+void FifteenDotFourDevice::dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
 {
-//    Smsgs_cmdIds_t cmdId;
-    if(pDataInd != NULL && pDataInd->msdu.p != NULL && pDataInd->msdu.len > 0)
-    {
-       /* Save command for local use */
-//       cmdId = (Smsgs_cmdIds_t)*(pDataInd->msdu.p);
-       /* First, flush data in buffer */
-//       _this->flush();                          // continue adding to buffer, do not flush
-//       /* Save signal strength */
-//       _this->setSignalStrength(pDataInd->rssi);
-//       /* Copy data from MAC frame to APP frame */
-//       memcpy(_this->rx_buffer, pDataInd->msdu.p, pDataInd->msdu.len);
-//       /* Updating write pointer */
-//       _this->rx_fillLevel += pDataInd->msdu.len;
+    if(pDataInd->dstPanId == _this->getPanID()) {
     }
-//    System_printf("Command ID=", cmdId); // printing to console inside of CCS
-    _this->revents = IDLE_EVENT;
-    // RSSI -> save this in a private variable for the user.
-    // validate frame ?
-    // if you get another, we put stuff in buffer 1, now fill buffer 2
-    // buffer <queue> a solution, down the line
 }
 
-void FifteenDotFour::beaconNotifyIndCb(ApiMac_mlmeBeaconNotifyInd_t *pData)
+void FifteenDotFourDevice::beaconNotifyIndCb(ApiMac_mlmeBeaconNotifyInd_t *pData)
 {
     if(pData->beaconType == ApiMac_beaconType_normal) {
         if(APIMAC_SFS_ASSOCIATION_PERMIT(pData->panDesc.superframeSpec))
@@ -347,23 +290,34 @@ void FifteenDotFour::beaconNotifyIndCb(ApiMac_mlmeBeaconNotifyInd_t *pData)
     }
  }
 
-void FifteenDotFour::scanCnfCB(ApiMac_mlmeScanCnf_t *pData)
+void FifteenDotFourDevice::scanCnfCB(ApiMac_mlmeScanCnf_t *pData)
 {
     if(pData->status == ApiMac_status_success) {
         if(_this->getPanIdMatch()) {
             /* go to the association state */
             _this->revents |= ACCOCIATE_EVENT;
+//            if(Timer_isActive(&_this->scanClkStruct) == true)
+//            {
+//                Timer_stop(&_this->scanClkStruct);
+//            }
         }
+    } else {
+        _this->revents |= IDLE_EVENT;
+        if(Timer_isActive(&_this->scanClkStruct) == true)
+        {
+            Timer_stop(&_this->scanClkStruct);
+        }
+
     }
 }
 
-void FifteenDotFour::associateCnfCB(ApiMac_mlmeAssociateCnf_t *pAssocCnf)
+void FifteenDotFourDevice::associateCnfCB(ApiMac_mlmeAssociateCnf_t *pAssocCnf)
 {
     _this->revents |= IDLE_EVENT;
     _this->_connected = true;
 }
 
-bool FifteenDotFour::checkBeaconOrder(uint16_t superframeSpec)
+bool FifteenDotFourDevice::checkBeaconOrder(uint16_t superframeSpec)
 {
     if(CONFIG_MAC_BEACON_ORDER == JDLLC_BEACON_ORDER_NON_BEACON)
     {
@@ -380,8 +334,48 @@ bool FifteenDotFour::checkBeaconOrder(uint16_t superframeSpec)
     return (false);
 }
 
-/* Data poll timer related functions */
-void FifteenDotFour::initializePollClock(void)
+/*
+ * Scan timer related functions
+ */
+void FifteenDotFourDevice::initializeScanClock(void)
+{
+    scanClkHandle = Timer_construct(&scanClkStruct,
+                                         processScanTimeoutCallback,
+                                         SCAN_TIMEOUT_VALUE,
+                                         0,
+                                         false,
+                                         (UArg)this);
+}
+
+void FifteenDotFourDevice::setScanClock(uint32_t scanTime)
+{
+    /* Stop the Reading timer */
+    if(Timer_isActive(&scanClkStruct) == true)
+    {
+        Timer_stop(&scanClkStruct);
+    }
+
+    /* Setup timer */
+    if(scanTime > 0)
+    {
+        Timer_setTimeout(scanClkHandle, scanTime);
+        Timer_start(&scanClkStruct);
+    }
+}
+
+void FifteenDotFourDevice::processScanTimeoutCallback(UArg instance)
+{
+    FifteenDotFourDevice *node = static_cast<FifteenDotFourDevice*>((void *)instance);
+
+    /* Wake up the application thread when it waits for clock event */
+    node->revents |= JOIN_EVENT;
+    Semaphore_post(node->sem);
+}
+
+/*
+ * Data poll timer related functions
+ */
+void FifteenDotFourDevice::initializePollClock(void)
 {
     pollClkHandle = Timer_construct(&pollClkStruct,
                                          processPollTimeoutCallback,
@@ -391,7 +385,7 @@ void FifteenDotFour::initializePollClock(void)
                                          (UArg)this);
 }
 
-void FifteenDotFour::setPollClock(uint32_t pollTime)
+void FifteenDotFourDevice::setPollClock(uint32_t pollTime)
 {
     /* Stop the Reading timer */
     if(Timer_isActive(&pollClkStruct) == true)
@@ -407,9 +401,9 @@ void FifteenDotFour::setPollClock(uint32_t pollTime)
     }
 }
 
-void FifteenDotFour::processPollTimeoutCallback(UArg instance)
+void FifteenDotFourDevice::processPollTimeoutCallback(UArg instance)
 {
-    FifteenDotFour *node = static_cast<FifteenDotFour*>((void *)instance);
+    FifteenDotFourDevice *node = static_cast<FifteenDotFourDevice*>((void *)instance);
 
     /* Wake up the application thread when it waits for clock event */
 
