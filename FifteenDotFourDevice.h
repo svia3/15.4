@@ -68,14 +68,14 @@ class FifteenDotFourDevice : public FifteenDotFour
          *
          * @return              number of bytes available in the buffer
          */
-        uint8_t available(void);
+        virtual int available(void);
 
         /**
          * Call buffer_read to read a single byte.
          *
          * @return              read byte
          */
-        uint8_t read(void);
+        virtual int read(void);
 
         /**
          * Call buffer_read_multiple() to read multiple bytes from rx_buffer
@@ -85,7 +85,7 @@ class FifteenDotFourDevice : public FifteenDotFour
          * @param  size         amount of bytes to be read from rx_buffer
          * @return              number of bytes read
          */
-        uint8_t read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
+        virtual int read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
 
         /**
          * Call buffer_write() to write a single byte to tx_buffer.
@@ -93,7 +93,7 @@ class FifteenDotFourDevice : public FifteenDotFour
          * @param  w_byte       written byte
          * @return              true/false successful write
          */
-        bool write(uint8_t w_byte);
+        virtual size_t write(uint8_t w_byte);
 
         /**
          * Call buffer_write_mutliple() to write multiple bytes from a user
@@ -103,7 +103,7 @@ class FifteenDotFourDevice : public FifteenDotFour
          * @param  size         size of the bytes to push onto tx_buffer
          * @return              true/false successful write
          */
-        bool write(uint8_t* user_buf, size_t size);
+        virtual size_t write(uint8_t* user_buf, size_t size);
 
         /**
          * Flush the 15.4 class variable rx_buffer.

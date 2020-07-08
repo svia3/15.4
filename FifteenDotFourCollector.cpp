@@ -169,7 +169,9 @@ void FifteenDotFourCollector::process(void)
 void FifteenDotFourCollector::beginTransmission(uint16_t address)
 {
     // set the address of the destination node
+//    setAddressExt(ApiMac_sAddrExt_t *addr)
     // clear buffer
+    tx_flush(&tx_buffer);
 }
 
 bool FifteenDotFourCollector::endTransmission()

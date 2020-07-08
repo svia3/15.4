@@ -56,6 +56,11 @@ class FifteenDotFourCollector : public FifteenDotFour
         uint16_t panID = 0x0001;
         /* We assume short address mode */
         ApiMac_sAddr_t address ={{.shortAddr = 0xAABB}, ApiMac_addrType_short};
+
+        /* Buffer Handling implementing buffer_c API */
+        buffer_t rx_buffer;
+        buffer_t tx_buffer;
+
     protected:
         Semaphore_Handle sem;
 };

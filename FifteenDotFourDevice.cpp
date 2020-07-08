@@ -67,27 +67,27 @@ FifteenDotFourDevice::FifteenDotFourDevice(void)
     _this = this;
 }
 
-uint8_t FifteenDotFourDevice::available(void)
+int FifteenDotFourDevice::available(void)
 {
     return buffer_get_size(&rx_buffer);
 }
 
-uint8_t FifteenDotFourDevice::read(void)
+int FifteenDotFourDevice::read(void)
 {
     return buffer_read(&rx_buffer);
 }
 
-uint8_t FifteenDotFourDevice::read(uint8_t* user_buf, size_t size)
+int FifteenDotFourDevice::read(uint8_t* user_buf, size_t size)
 {
     return buffer_read_multiple(user_buf, &rx_buffer, size);
 }
 
-bool FifteenDotFourDevice::write(uint8_t w_byte)
+size_t FifteenDotFourDevice::write(uint8_t w_byte)
 {
     return buffer_write(&tx_buffer, w_byte);
 }
 
-bool FifteenDotFourDevice::write(uint8_t* user_buf, size_t size)
+size_t FifteenDotFourDevice::write(uint8_t* user_buf, size_t size)
 {
     return buffer_write_multiple(&tx_buffer, user_buf, size);
 }
