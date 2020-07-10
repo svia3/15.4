@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
-#include <utils/util_timer.h>
-#include <utils/buffer_c/buffer.h>
-#include <FifteenDotFour.h>
+#include "utils/util_timer.h"
+#include "utils/buffer_c/buffer.h"
+//#include <FifteenDotFour.h>
 
 /*
  * TODO: Some of these come from jdllc.c.
@@ -41,27 +41,29 @@
 #define MAC_FRAME_TYPE_DATA 1
 #define MAC_DATA_REQ_FRAME 4
 
+#define RXTX_BUFFER_LENGTH 512
+
 #define AUTO_REQUEST_SEC_LEVEL 0x00
 
-class FifteenDotFourDevice : public FifteenDotFour
+class FifteenDotFourDevice
 {
-	public:
-		FifteenDotFourDevice(void);
-		void begin(bool autoJoin = false);
-		void process(void);
-		/* TODO: provide callback option vs polling connected()? */
-		void connect(void);
-		bool connected(void) {return _connected;};
-		void setChannel(uint8_t c) {channel = c;};
-		uint8_t getChannel(void) {return channel;};
-		void setPanID(uint16_t id) {panID = id;};
-		uint16_t getPanID(void) {return panID;};
-		void setPanIdMatch(bool match) {panIdMatch = match;};
-		bool getPanIdMatch(void) {return panIdMatch;};
-		void setCoordShortAddr(uint16_t addr) {coordShortAddr = addr;};
-		uint16_t getCoordShortAddr(void) {return coordShortAddr;};
+    public:
+        FifteenDotFourDevice(void);
+        void begin(bool autoJoin = false);
+        void process(void);
+        /* TODO: provide callback option vs polling connected()? */
+        void connect(void);
+        bool connected(void) {return _connected;};
+        void setChannel(uint8_t c) {channel = c;};
+        uint8_t getChannel(void) {return channel;};
+        void setPanID(uint16_t id) {panID = id;};
+        uint16_t getPanID(void) {return panID;};
+        void setPanIdMatch(bool match) {panIdMatch = match;};
+        bool getPanIdMatch(void) {return panIdMatch;};
+        void setCoordShortAddr(uint16_t addr) {coordShortAddr = addr;};
+        uint16_t getCoordShortAddr(void) {return coordShortAddr;};
 
-		/* ------------------------------------------------- */
+        /* ------------------------------------------------- */
         /*                  Buffer Handling                  */
         /* ------------------------------------------------- */
         /**
@@ -120,41 +122,41 @@ class FifteenDotFourDevice : public FifteenDotFour
         /* ------------------------------------------------- */
         /*     Static Callback Functions for the MAC         */
         /* ------------------------------------------------- */
-		static void dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf);
-		static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd);
-		static void scanCnfCB(ApiMac_mlmeScanCnf_t *pScanCnf);
-		static void beaconNotifyIndCb(ApiMac_mlmeBeaconNotifyInd_t *pData);
-		static void associateCnfCB(ApiMac_mlmeAssociateCnf_t *pAssocCnf);
-		static void pollCnfCb(ApiMac_mlmePollCnf_t *pData);
-		static void processPollTimeoutCallback(UArg instance);
-		static void processScanTimeoutCallback(UArg instance);
+        static void dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf);
+        static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd);
+        static void scanCnfCB(ApiMac_mlmeScanCnf_t *pScanCnf);
+        static void beaconNotifyIndCb(ApiMac_mlmeBeaconNotifyInd_t *pData);
+        static void associateCnfCB(ApiMac_mlmeAssociateCnf_t *pAssocCnf);
+        static void pollCnfCb(ApiMac_mlmePollCnf_t *pData);
+        static void processPollTimeoutCallback(UArg instance);
+        static void processScanTimeoutCallback(UArg instance);
         /* ------------------------------------------------- */
 
 
-	private:
-		/*
-		 * Private Methods
-		 */
-		void initializePollClock(void);
-		void setPollClock(uint32_t pollTime);
+    private:
+        /*
+         * Private Methods
+         */
+        void initializePollClock(void);
+        void setPollClock(uint32_t pollTime);
         void initializeScanClock(void);
         void setScanClock(uint32_t pollTime);
 
         /*
          * Bookkeeping Variables
          */
-		bool checkBeaconOrder(uint16_t superframeSpec);
-		bool fh = false;
-		uint8_t channel = 0;
-		uint16_t panID = 0;
+        bool checkBeaconOrder(uint16_t superframeSpec);
+        bool fh = false;
+        uint8_t channel = 0;
+        uint16_t panID = 0;
         uint16_t revents = 0;
-		uint16_t states = 0;
-		uint8_t _macTaskId = 0;
-		bool panIdMatch = false;
-		uint16_t coordShortAddr = 0;
-		bool _connected = false;
-		Clock_Struct pollClkStruct;
-		Clock_Handle pollClkHandle;
+        uint16_t states = 0;
+        uint8_t _macTaskId = 0;
+        bool panIdMatch = false;
+        uint16_t coordShortAddr = 0;
+        bool _connected = false;
+        Clock_Struct pollClkStruct;
+        Clock_Handle pollClkHandle;
         Clock_Struct scanClkStruct;
         Clock_Handle scanClkHandle;
 
@@ -162,9 +164,9 @@ class FifteenDotFourDevice : public FifteenDotFour
         buffer_t rx_buffer;
         buffer_t tx_buffer;
 
-	protected:
-		macUserCfg_t macUser0Cfg[];
-		Semaphore_Handle sem;
+    protected:
+        macUserCfg_t macUser0Cfg[];
+        Semaphore_Handle sem;
 };
 
 #endif
