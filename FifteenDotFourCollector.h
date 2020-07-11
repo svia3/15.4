@@ -39,6 +39,7 @@ class FifteenDotFourCollector : public FifteenDotFour
         void process(void);
         void beginTransmission(uint16_t address);
         bool endTransmission();
+
         /* API MAC Callbacks */
         static void orphanIndCb(ApiMac_mlmeOrphanInd_t *pData);
         static void assocIndCb(ApiMac_mlmeAssociateInd_t *pData);
@@ -57,10 +58,7 @@ class FifteenDotFourCollector : public FifteenDotFour
         uint16_t panID = 0x0001;
         /* We assume short address mode */
         ApiMac_sAddr_t address ={{.shortAddr = 0xAABB}, ApiMac_addrType_short};
-
-        /* Buffer Handling implementing buffer_c API */
-        buffer_t rx_buffer;
-        buffer_t tx_buffer;
+        FifteenDotFour* parent = super;
 
     protected:
         Semaphore_Handle sem;

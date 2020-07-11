@@ -1,7 +1,7 @@
 #include <software_stack/ti15_4stack/macTask.h>
 #include <software_stack/ti15_4stack/mac/rom/rom_jt_154.h>
 #include <advanced_config.h>
-#include "FifteenDotFourDevice.h"
+#include <FifteenDotFourDevice.h>
 #include <xdc/runtime/System.h>
 #include <software_stack/ti15_4stack/stack_user_api/api_mac/api_mac.h>
 #include "ti_154stack_config.h"
@@ -64,56 +64,22 @@ FifteenDotFourDevice::FifteenDotFourDevice(void)
      * to access the class properties in the C callbacks.
      */
     _this = this;
-    buffer_init(&tx_buffer, RXTX_BUFFER_LENGTH);
-    buffer_init(&rx_buffer, RXTX_BUFFER_LENGTH);
-}
-
-int FifteenDotFourDevice::available(void)
-{
-    return buffer_get_size(&rx_buffer);
-}
-
-int FifteenDotFourDevice::read(void)
-{
-    return buffer_read(&rx_buffer);
-}
-
-int FifteenDotFourDevice::read(uint8_t* user_buf, size_t size)
-{
-    return buffer_read_multiple(user_buf, &rx_buffer, size);
-}
-
-size_t FifteenDotFourDevice::write(uint8_t w_byte)
-{
-    return buffer_write(&tx_buffer, w_byte);
-}
-
-size_t FifteenDotFourDevice::write(uint8_t* user_buf, size_t size)
-{
-    return buffer_write_multiple(&tx_buffer, user_buf, size);
-}
-
-void FifteenDotFourDevice::rx_flush(void)
-{
-    buffer_flush(&rx_buffer);   /* flush the tx_buffer too? */
-}
-
-void FifteenDotFourDevice::tx_flush(void)
-{
-    buffer_flush(&tx_buffer);   /* flush the tx_buffer too? */
 }
 
 void FifteenDotFourDevice::begin(bool autoJoin)
 {
+    /* Initialize the buffers for the device */
+    super.begin();
+
     uint8_t _macTaskId;
     macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;
 
     macUser0Cfg[0].pAssertFP = assertHandler;
-//    macUser0Cfg[0].ff = false;                    // This causes program o error? MacUser does not have ff field.
+//    macUser0Cfg[0].ff = false;
 
-//    Task_disable();
-//    _macTaskId = macTaskInit(macUser0Cfg);
-//    Task_enable();
+    Task_disable();
+    _macTaskId = macTaskInit(macUser0Cfg);
+    Task_enable();
 
     initializePollClock();
     initializeScanClock();
@@ -225,6 +191,7 @@ void FifteenDotFourDevice::process(void)
         revents &= ~POLL_EVENT;
         revents |= IDLE_EVENT;
         ApiMac_mlmePollReq_t pollReq;
+
         memset(&pollReq, 0, sizeof(ApiMac_mlmePollReq_t));
         pollReq.coordPanId = getPanID();
         pollReq.coordAddress.addrMode = ApiMac_addrType_short;
@@ -238,9 +205,10 @@ void FifteenDotFourDevice::process(void)
 }
 
 void FifteenDotFourDevice::pollCnfCb(ApiMac_mlmePollCnf_t *pData) {
-    if(pData->status != ApiMac_status_success)
+    if((pData->status == ApiMac_status_noData) ||
+       (pData->status == ApiMac_status_success))
     {
-     _this->revents = IDLE_EVENT;
+
     }
 }
 /*
@@ -248,21 +216,6 @@ void FifteenDotFourDevice::pollCnfCb(ApiMac_mlmePollCnf_t *pData) {
  */
 void FifteenDotFourDevice::dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf)
 {
-    // data sending state ->
-    //    if (CONFIC_MAC_BEACON_ORDER == JDLLC_BEACON_ORDER_NON_BEACON)
-    //    {
-            if(pDataCnf->status == ApiMac_status_noAck)
-            {
-                //_this->updateDataFailures()
-                // how to handle max data failures or not -> switch to a polling state
-                _this->revents = POLL_EVENT;
-            }
-            else if (pDataCnf->status == ApiMac_status_success)
-            {
-                //-this->resetDataFailures
-                _this->revents = IDLE_EVENT;
-            }
-    //    }
 }
 
 /*!
@@ -273,13 +226,7 @@ void FifteenDotFourDevice::dataCnfCB(ApiMac_mcpsDataCnf_t *pDataCnf)
 
 void FifteenDotFourDevice::dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
 {
-    if(pDataInd != NULL && pDataInd->msdu.p != NULL && pDataInd->msdu.len > 0)
-    {
-        if(pDataInd->dstPanId == _this->getPanID())
-        {
-
-            buffer_write_multiple(&(_this->rx_buffer), pDataInd->msdu.p, (size_t)pDataInd->msdu.len);
-        }
+    if(pDataInd->dstPanId == _this->getPanID()) {
     }
 }
 

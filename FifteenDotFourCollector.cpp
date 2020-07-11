@@ -66,6 +66,10 @@ FifteenDotFourCollector::FifteenDotFourCollector(void)
 
 void FifteenDotFourCollector::begin(void)
 {
+
+    /* Initialize the buffers for the device */
+    super.begin();
+
     uint8_t _macTaskId;
     macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;
 
@@ -168,14 +172,15 @@ void FifteenDotFourCollector::process(void)
 void FifteenDotFourCollector::beginTransmission(uint16_t address)
 {
     // set the address of the destination node
-//    setAddressExt(ApiMac_sAddrExt_t *addr)
+//    setAddressExt())
     // clear buffer
-//    tx_flush(&tx_buffer);
+    flush(&tx_buffer);
+// creaet tx_buffer and rx_buffer
+    buffer_init(&tx_buffer);
 }
 
 bool FifteenDotFourCollector::endTransmission()
 {
-    char msg[] = "Hello, World!";
     ApiMac_mcpsDataReq_t dataReq;
     memset(&dataReq, 0, sizeof(ApiMac_mcpsDataReq_t));
 
@@ -192,7 +197,6 @@ bool FifteenDotFourCollector::endTransmission()
     ApiMac_status_t status = ApiMac_mcpsDataReq(&dataReq);
 
     // set last error to ApiMac_status
-
     return status == ApiMac_status_success ? true : false;
 }
 
@@ -210,7 +214,7 @@ void FifteenDotFourCollector::assocIndCb(ApiMac_mlmeAssociateInd_t *pData)
     /* No security. Set to all 0's */
     memset(&assocRsp.sec, 0, sizeof(ApiMac_sec_t));
     assocRsp.status = ApiMac_assocStatus_success;
-    assocRsp.assocShortAddress = devInfo.shortAddress;
+    memcpy(&assocRsp.deviceAddress, &devInfo.shortAddress, 16);
 
     /* Send out the associate response */
     ApiMac_mlmeAssociateRsp(&assocRsp);
