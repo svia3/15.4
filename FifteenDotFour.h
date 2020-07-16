@@ -33,14 +33,14 @@ class FifteenDotFour //: public Stream
          *
          * @return              number of bytes available in the buffer
          */
-        virtual int available(void);
+        virtual size_t available(void);
 
         /**
          * Call buffer_read to read a single byte.
          *
          * @return              read byte
          */
-        virtual int read(void);
+        virtual size_t read(void);
 
         /**
          * Call buffer_read_multiple() to read multiple bytes from rx_buffer
@@ -50,7 +50,7 @@ class FifteenDotFour //: public Stream
          * @param  size         amount of bytes to be read from rx_buffer
          * @return              number of bytes read
          */
-        virtual int read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
+        virtual size_t read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
 
         /**
          * Call buffer_write() to write a single byte to tx_buffer.
@@ -78,7 +78,7 @@ class FifteenDotFour //: public Stream
         /**
          * Peek
          */
-        virtual uint8_t peek(void);
+        virtual size_t peek(void);
         /* ------------------------------------------------- */
 };
 #endif
