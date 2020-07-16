@@ -56,7 +56,7 @@ static ApiMac_callbacks_t Sensor_macCallbacks =
     };
 }
 
-FifteenDotFourDevice::FifteenDotFourDevice(void)
+FifteenDotFourDevice::FifteenDotFourDevice()
 {
     /*
      * Assign global class ptr to this instance.
@@ -68,8 +68,8 @@ FifteenDotFourDevice::FifteenDotFourDevice(void)
 
 void FifteenDotFourDevice::begin(bool autoJoin)
 {
-    /* Initialize the buffers for the device */
-    super.begin();
+    /* Begin of parent class -> init buffers here or in constructor?*/
+    FifteenDotFour::begin();
 
     uint8_t _macTaskId;
     macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;

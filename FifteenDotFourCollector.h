@@ -37,7 +37,7 @@ class FifteenDotFourCollector : public FifteenDotFour
         void getAddressExt(ApiMac_sAddrExt_t *addr) {memcpy(addr, address.addr.extAddr, sizeof(ApiMac_sAddrExt_t));};
         void setAddressExt(ApiMac_sAddrExt_t *addr) {memcpy(address.addr.extAddr, addr, sizeof(ApiMac_sAddrExt_t));};
         void process(void);
-        void beginTransmission(uint16_t address);
+        bool beginTransmission(uint16_t address);
         bool endTransmission();
 
         /* API MAC Callbacks */

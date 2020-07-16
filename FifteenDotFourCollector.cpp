@@ -5,6 +5,7 @@
 #include <software_stack/ti15_4stack/macTask.h>
 #include <software_stack/ti15_4stack/mac/rom/rom_jt_154.h>
 #include <mac_util.h>
+#include <utils/buffer_c/buffer.h>
 
 extern "C" void assertHandler(void);
 
@@ -62,13 +63,14 @@ FifteenDotFourCollector::FifteenDotFourCollector(void)
      */
     _this = this;
     panID = 0x0001;
+    FifteenDotFour::FifteenDotFour(false);
 }
 
 void FifteenDotFourCollector::begin(void)
 {
 
     /* Initialize the buffers for the device */
-    super.begin();
+    FifteenDotFour::begin();
 
     uint8_t _macTaskId;
     macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;
@@ -174,9 +176,9 @@ void FifteenDotFourCollector::beginTransmission(uint16_t address)
     // set the address of the destination node
 //    setAddressExt())
     // clear buffer
-    flush(&tx_buffer);
+    FifteenDotFour::flush();
 // creaet tx_buffer and rx_buffer
-    buffer_init(&tx_buffer);
+//    buffer_init(&tx_buffer);
 }
 
 bool FifteenDotFourCollector::endTransmission()
@@ -191,8 +193,11 @@ bool FifteenDotFourCollector::endTransmission()
     dataReq.msduHandle = 0;
     dataReq.txOptions.ack = true;
     dataReq.txOptions.indirect = true;
-    dataReq.msdu.len = strlen(msg);
-    dataReq.msdu.p = (uint8_t *)msg;
+
+    /* Buffer Handling */
+    int msgSize = get_buffer_size(&tx_buffex);
+    dataReq.msdu.len = msgSize;
+    buffer_read_multiple(dataReq.msdu.p, &tx_buffer, msgSize);
 
     ApiMac_status_t status = ApiMac_mcpsDataReq(&dataReq);
 

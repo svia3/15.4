@@ -5,7 +5,6 @@
 #include <ti/sysbios/knl/Semaphore.h>
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
 #include <utils/util_timer.h>
-#include <utils/buffer_c/buffer.h>
 #include <FifteenDotFour.h>
 
 /*
@@ -45,7 +44,7 @@
 class FifteenDotFourDevice : public FifteenDotFour
 {
 	public:
-		FifteenDotFourDevice(void);
+		FifteenDotFourDevice();
 		void begin(bool autoJoin = false);
 		void process(void);
 		/* TODO: provide callback option vs polling connected()? */

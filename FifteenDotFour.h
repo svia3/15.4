@@ -2,21 +2,29 @@
 #define FifteenDotFour_h             // include guard
 //#include <Stream.h>
 //#include <Energia.h>
+#include <utils/buffer_c/buffer.h>
 
 #define MTU         512
 /* Tx buffer -> MTU, Rx buffer -> MTU * 2 */
 
 class FifteenDotFour //: public Stream
 {
-    private:
+//    private:
+    protected:
         /* Buffer Handling implementing buffer_c API */
         buffer_t rx_buffer;
         buffer_t tx_buffer;
-    public:
-        FifteenDotFour(); // INTERFACE
-        virtual void beginTransmission();
-        virtual void endTransmission();
+        bool m_device;
 
+    public:
+        /* Constructors */
+        FifteenDotFour();
+        FifteenDotFour(bool dev); // INTERFACE
+
+        /* Member Functions */
+        virtual void begin();
+        virtual bool beginTransmission();
+        virtual bool endTransmission();
         /* ------------------------------------------------- */
         /*                  Buffer Handling                  */
         /* ------------------------------------------------- */
@@ -60,7 +68,7 @@ class FifteenDotFour //: public Stream
          * @param  size         size of the bytes to push onto tx_buffer
          * @return              true/false successful write
          */
-        virtual size_t write(const uint8_t* user_buf, size_t size);
+        virtual size_t write(const int8_t* user_buf, size_t size);
 
         /**
          * Flush the 15.4 class variable rx_buffer.
@@ -70,7 +78,7 @@ class FifteenDotFour //: public Stream
         /**
          * Peek
          */
-        virtual void peek(void);
+        virtual uint8_t peek(void);
         /* ------------------------------------------------- */
 };
 #endif
