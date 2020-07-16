@@ -22,9 +22,9 @@ class FifteenDotFour //: public Stream
         FifteenDotFour(bool dev); // INTERFACE
 
         /* Member Functions */
-        virtual void begin();
-        virtual bool beginTransmission();
-        virtual bool endTransmission();
+//        virtual void begin(bool autoJoin) = 0;
+        virtual bool beginTransmission(uint16_t address) = 0;
+        virtual bool endTransmission() = 0;
         /* ------------------------------------------------- */
         /*                  Buffer Handling                  */
         /* ------------------------------------------------- */
@@ -33,14 +33,14 @@ class FifteenDotFour //: public Stream
          *
          * @return              number of bytes available in the buffer
          */
-        virtual size_t available(void);
+        virtual int available(void);
 
         /**
          * Call buffer_read to read a single byte.
          *
          * @return              read byte
          */
-        virtual size_t read(void);
+        virtual int read(void);
 
         /**
          * Call buffer_read_multiple() to read multiple bytes from rx_buffer
@@ -50,7 +50,7 @@ class FifteenDotFour //: public Stream
          * @param  size         amount of bytes to be read from rx_buffer
          * @return              number of bytes read
          */
-        virtual size_t read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
+        virtual int read(uint8_t* user_buf, size_t size);    // pop a certain amount of bytes from queue
 
         /**
          * Call buffer_write() to write a single byte to tx_buffer.
@@ -62,13 +62,13 @@ class FifteenDotFour //: public Stream
 
         /**
          * Call buffer_write_mutliple() to write multiple bytes from a user
-         * defined uint8_t array into the tx_buffer.
+         * defined uint8_st array into the tx_buffer.
          *
          * @param  user_buf     uint8_t user array to push onto tx_buffer
          * @param  size         size of the bytes to push onto tx_buffer
          * @return              true/false successful write
          */
-        virtual size_t write(const int8_t* user_buf, size_t size);
+        virtual size_t write(const uint8_t* user_buf, size_t size);
 
         /**
          * Flush the 15.4 class variable rx_buffer.
@@ -78,7 +78,7 @@ class FifteenDotFour //: public Stream
         /**
          * Peek
          */
-        virtual size_t peek(void);
+        virtual int peek(void);
         /* ------------------------------------------------- */
 };
 #endif

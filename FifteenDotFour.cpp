@@ -1,22 +1,22 @@
 
 #include <FifteenDotFour.h>
 
-FifteenDotFour::FifteenDorFour()
+FifteenDotFour::FifteenDotFour()
 {
 //    return;
 }
 
-FifteenDotFour::FifteenDotFour(bool dev) : m_Device(dev)
+FifteenDotFour::FifteenDotFour(bool dev) : m_device(dev)
 {
     /* Create the buffers */
        buffer_init(&rx_buffer, MTU * 2);
        buffer_init(&tx_buffer, MTU);
 }
 
-void FifteenDotFour::begin()
-{
-    return;
-}
+//FifteenDotFour::begin(void)
+//{
+//    return;
+//}
 
 int FifteenDotFour::available(void)
 {
@@ -43,7 +43,7 @@ size_t FifteenDotFour::write(const uint8_t* user_buf, size_t size)
     return buffer_write_multiple(&tx_buffer, user_buf, size);
 }
 
-uint8_t FifteenDotFour::peek(void)
+int FifteenDotFour::peek(void)
 {
     /* put this in buffer_c */
     return buffer_peek(&rx_buffer);

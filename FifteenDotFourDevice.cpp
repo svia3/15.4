@@ -69,7 +69,7 @@ FifteenDotFourDevice::FifteenDotFourDevice()
 void FifteenDotFourDevice::begin(bool autoJoin)
 {
     /* Begin of parent class -> init buffers here or in constructor?*/
-    FifteenDotFour::begin();
+//    FifteenDotFour::begin();
 
     uint8_t _macTaskId;
     macUserCfg_t macUser0Cfg[] = MAC_USER_CFG;

@@ -4,7 +4,7 @@
 #include <software_stack/ti15_4stack/stack_user_api/api_mac/api_mac.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <software_stack/ti15_4stack/radio_configuration/mac_user_config.h>
-#include <utils/buffer_c/buffer.h>
+//#include <utils/buffer_c/buffer.h>
 #include <FifteenDotFour.h>
 
 #define MIN_PERSISTENCE_TIME_USEC 2000000
@@ -28,7 +28,7 @@ class FifteenDotFourCollector : public FifteenDotFour
 {
     public:
         FifteenDotFourCollector(void);
-        void begin(void);
+        void begin();   // no auto-join
         void start(void);
         void setChannel(uint8_t c) {channel = c;};
         uint8_t getChannel(void) {return channel;};
@@ -58,7 +58,7 @@ class FifteenDotFourCollector : public FifteenDotFour
         uint16_t panID = 0x0001;
         /* We assume short address mode */
         ApiMac_sAddr_t address ={{.shortAddr = 0xAABB}, ApiMac_addrType_short};
-        FifteenDotFour* parent = super;
+//        FifteenDotFour* parent = super;
 
     protected:
         Semaphore_Handle sem;
