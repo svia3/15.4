@@ -7,6 +7,7 @@
 #define MTU         512
 /* Tx buffer -> MTU, Rx buffer -> MTU * 2 */
 
+
 class FifteenDotFour //: public Stream
 {
 //    private:
@@ -23,7 +24,7 @@ class FifteenDotFour //: public Stream
 
         /* Member Functions */
 //        virtual void begin(bool autoJoin) = 0;
-        virtual bool beginTransmission() = 0;
+        virtual bool beginTransmission(uint16_t address) = 0;
         virtual bool endTransmission() = 0;
         /* ------------------------------------------------- */
         /*                  Buffer Handling                  */
